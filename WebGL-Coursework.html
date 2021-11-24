@@ -61,6 +61,21 @@
 
 		init();
 
+		//Create Texture:
+		//Load images:
+
+		const textureLoader = new THREE.TextureLoader();
+		const loader = new THREE.TextureLoader();
+    const cubeMaterials = [
+        new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-one.png') }), //right side
+        new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-two.png')}), //left side
+        new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-three.png')}), //top side
+        new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-four.png')}), //bottom side
+        new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-five.png')}), //front side
+        new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-six.png')}), //back side
+    ];
+
+
 		// // TASK: Draw a cube (requirement 1)-----------------
 		//Define Box
 		const geometry = new THREE.BoxGeometry(2,2,2);
@@ -68,7 +83,7 @@
 		const material = new THREE.MeshPhongMaterial({ color: 0x00ffff, wireframe: false });
 		//Build cube using box geometry & material
 		//Mesh => Takes Geometry and applies Material
-		var cube = new THREE.Mesh( geometry, material );
+		var cube = new THREE.Mesh( geometry, cubeMaterials );
 		cube.position.set(0,0,0)
 
 		//Add cube to scene
@@ -179,7 +194,7 @@
 			//scene.add(new THREE.AmbientLight(0xffffff));
 			// TASK: add more complex lighting for 'face' rendering mode (requirement 4).
 			const color = 0xFFFFFF;
-			const intensity = 0.8;
+			const intensity = 2;
 			const light = new THREE.DirectionalLight(color, intensity);
 			light.position.set(-1, 2, 4);
 			scene.add(light);
