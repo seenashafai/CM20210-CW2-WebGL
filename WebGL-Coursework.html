@@ -29,24 +29,8 @@
 		var camera, scene, renderer, mesh;
 
 		// Initialise the scene, and draw it for the first time.
-		init();
-
-		// // TASK: Draw a cube (requirement 1)-----------------
-		//Define Box
-		const geometry = new THREE.BoxGeometry(2,2,2);
-		//Define material
-		const material = new THREE.MeshPhongMaterial({ color: 0x00ffff, wireframe: true });
-		//Build cube using box geometry & material
-		//Mesh => Takes Geometry and applies Material
-		const cube = new THREE.Mesh( geometry, material );
-		cube.position.set(0,0,0)
-
-		//Add cube to scene
-		scene.add( cube );//Default pos = (0,0,0)
-
-		animate();
-
 		var cubeOptions = {
+			wireframe: false,
 			drawCube: true,
 			rotation_x: 0,
 			rotation_y: 0,
@@ -62,6 +46,24 @@
 
 			}
 		};
+
+		init();
+
+		// // TASK: Draw a cube (requirement 1)-----------------
+		//Define Box
+		const geometry = new THREE.BoxGeometry(2,2,2);
+		//Define material
+		const material = new THREE.MeshPhongMaterial({ color: 0x00ffff, wireframe: false });
+		//Build cube using box geometry & material
+		//Mesh => Takes Geometry and applies Material
+		var cube = new THREE.Mesh( geometry, material );
+		cube.position.set(0,0,0)
+
+		//Add cube to scene
+		scene.add( cube );//Default pos = (0,0,0)
+
+		animate();
+
 
 		var gui = new dat.GUI();
 
@@ -192,15 +194,23 @@
 			switch (event.key) {
 				// Render modes.
 				case 'f': // f = face
-					alert('TASK: add code for face render mode (requirement 4).');
+					scene.remove(cube);
+					cube = new THREE.Mesh(geometry, material );
+					scene.add(cube);
 					break;
 
 				case 'e': // e = edge
-					alert('TASK: add code for edge render mode (requirement 4).');
+					scene.remove(cube);
+					const materialWire = new THREE.MeshPhongMaterial({ color: 0x00ffff, wireframe: true });
+					cube = new THREE.Mesh( geometry, materialWire );
+					scene.add(cube);
 					break;
 
 				case 'v': // v = vertex
-					alert('TASK: add code for vertex render mode (requirement 4).');
+					scene.remove(cube);
+					const materialVertex = new THREE.PointsMaterial({color: 0xFF0000});
+					cube = new THREE.Points(geometry, materialVertex);
+					scene.add(cube);
 					break;
 
 				// TASK: add code for starting/stopping rotations (requirement 3).
