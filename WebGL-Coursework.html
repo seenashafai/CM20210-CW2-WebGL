@@ -20,6 +20,7 @@
 
 <body>
 	<script src="three-r134.js"></script>
+	<script src="dat.gui.min.js"></script>
 	<script>
 		"use strict"; // https://stackoverflow.com/q/1335851/72470
 
@@ -38,18 +39,68 @@
 		//Build cube using box geometry & material
 		//Mesh => Takes Geometry and applies Material
 		const cube = new THREE.Mesh( geometry, material );
-		//cube.position.set(0,0,0)
+		cube.position.set(0,0,0)
 
 		//Add cube to scene
 		scene.add( cube );//Default pos = (0,0,0)
 
 		animate();
 
+		var cubeOptions = {
+			drawCube: true,
+			rotation_x: 0,
+			rotation_y: 0,
+			rotation_z: 0,
+			resetAge: false,
+			reset: function() {
+				cube.rotation.x = 0;
+				cube.rotation.y = 0;
+				cube.rotation.z = 0;
+				cubeOptions.rotation_x = 0;
+				cubeOptions.rotation_y = 0;
+				cubeOptions.rotation_z = 0;
+
+			}
+		};
+
+		var gui = new dat.GUI();
+
+		var cubeGroup = gui.addFolder('Cube');
+		var drawCube = cubeGroup.add(cubeOptions, 'drawCube').name('Draw Cube')
+		.onChange((value) => {
+			if (value == true) scene.add(cube);
+			else scene.remove(cube);
+		});
+
+		var control = gui.addFolder('Control');
+		control.add(cubeOptions, 'rotation_x', 0,10,0.1).name('Rotation - X');
+		control.add(cubeOptions, 'rotation_y', 0,10,0.1).name('Rotation - Y');
+		control.add(cubeOptions, 'rotation_z', 0,10,0.1).name('Rotation - Z');
+		gui.add(cubeOptions, 'reset').onChange((value) =>{
+			resetSliders();
+		});
+
+		/* Here is the update */
+		var resetSliders = function (name) {
+    for (var i = 0; i < control.__controllers.length; i++) {
+            control.__controllers[i].setValue(0);
+    	}
+		};
+
 
 
 		// Listen for keyboard events, to react to them.
 		// Note: there are also other event listeners, e.g. for mouse events.
 		document.addEventListener('keydown', handleKeyDown);
+
+		function cubeControl() {
+			if (cubeOptions) {
+				cube.rotation.x += cubeOptions.rotation_x * 0.01;
+				cube.rotation.y += cubeOptions.rotation_y * 0.01;
+				cube.rotation.z += cubeOptions.rotation_z * 0.01;
+
+			}
+		}
 
 		// Scene initialisation. This function is only run once, at the very beginning.
 		function init() {
@@ -128,6 +179,7 @@
 		// Animation loop function. This function is called whenever an update is required.
 		function animate() {
 			requestAnimationFrame(animate);
+			cubeControl();
 
 			// TASK: This is a good place for code that rotates your cube (requirement 3).
 
