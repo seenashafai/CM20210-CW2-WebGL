@@ -27,6 +27,9 @@
 		// Global variables that are available in all functions.
 		// Note: You can add your own here, e.g. to store the rendering mode.
 		var camera, scene, renderer, mesh;
+		var x = new THREE.Vector3(1,0,0);
+		var y = new THREE.Vector3(0,1,0);
+		var z = new THREE.Vector3(0,0,1);
 
 		// Initialise the scene, and draw it for the first time.
 		var cubeOptions = {
@@ -43,8 +46,17 @@
 				cubeOptions.rotation_x = 0;
 				cubeOptions.rotation_y = 0;
 				cubeOptions.rotation_z = 0;
-
 			}
+		};
+
+		var cameraOptions = {
+			orbit: false,
+			moveUp: false,
+			moveDown: false,
+			moveLeft: false,
+			moveRight: false,
+			moveIn: false,
+			moveOut: false,
 		};
 
 		init();
@@ -61,6 +73,8 @@
 
 		//Add cube to scene
 		scene.add( cube );//Default pos = (0,0,0)
+		var velocity = new THREE.Vector3();
+		var tPrev = performance.now();
 
 		animate();
 
@@ -69,9 +83,9 @@
 
 		var cubeGroup = gui.addFolder('Cube');
 		var drawCube = cubeGroup.add(cubeOptions, 'drawCube').name('Draw Cube')
-		.onChange((value) => {
-			if (value == true) scene.add(cube);
-			else scene.remove(cube);
+			.onChange((value) => {
+				if (value == true) scene.add(cube);
+				else scene.remove(cube);
 		});
 
 		var control = gui.addFolder('Control');
@@ -82,6 +96,7 @@
 			resetSliders();
 		});
 
+
 		/* Here is the update */
 		var resetSliders = function (name) {
     for (var i = 0; i < control.__controllers.length; i++) {
@@ -89,11 +104,20 @@
     	}
 		};
 
+		var cam = gui.addFolder('Camera');
+		cam.add(cameraOptions, 'orbit').onChange((value) =>{
+			if (value == 1)
+				cameraOptions.orbit = true;
+			else cameraOptions.orbit = false;
+		});
+
+
 
 
 		// Listen for keyboard events, to react to them.
 		// Note: there are also other event listeners, e.g. for mouse events.
 		document.addEventListener('keydown', handleKeyDown);
+		document.addEventListener('keyup', handleKeyUp)
 
 		function cubeControl() {
 			if (cubeOptions) {
@@ -178,16 +202,48 @@
 			renderer.setSize(window.innerWidth, window.innerHeight);
 		}
 
+
 		// Animation loop function. This function is called whenever an update is required.
 		function animate() {
 			requestAnimationFrame(animate);
 			cubeControl();
 
-			// TASK: This is a good place for code that rotates your cube (requirement 3).
+			var time = performance.now();
+      var delta = ( time - tPrev ) / 1000;
 
+			velocity.x -= velocity.x * 1.2 * delta;
+			velocity.y -= velocity.y * 1.2 * delta;
+			velocity.z -= velocity.z * 1.2 * delta;
+
+
+      //if the user pressed 'up' or 'w', set velocity.z to a value > 0.
+      if ( cameraOptions.moveUp ) velocity.y += 3.0 * delta;
+      	camera.translateY( velocity.y * delta );
+
+			if ( cameraOptions.moveDown ) velocity.y -= 3.0 * delta;
+      	camera.translateY( velocity.y * delta );
+
+			if ( cameraOptions.moveLeft ) velocity.x -= 3.0 * delta;
+      	camera.translateX( velocity.x * delta );
+
+			if ( cameraOptions.moveRight ) velocity.x += 3.0 * delta;
+      	camera.translateX( velocity.x * delta );
+
+			if ( cameraOptions.moveIn ) velocity.z -= 3.0 * delta;
+      	camera.translateZ( velocity.z * delta );
+
+			if ( cameraOptions.moveOut ) velocity.z += 3.0 * delta;
+      	camera.translateZ( velocity.z * delta );
+    tPrev = time;
+
+			// TASK: This is a good place for code that rotates your cube (requirement 3).
+			if (cameraOptions.orbit)
+				camera.lookAt(0,0,0);
 			// Render the current scene to the screen.
 			renderer.render(scene, camera);
 		}
+
+
 
 		// Handle keyboard presses.
 		function handleKeyDown(event) {
@@ -209,13 +265,67 @@
 				case 'v': // v = vertex
 					scene.remove(cube);
 					const materialVertex = new THREE.PointsMaterial({color: 0xFF0000});
+					materialVertex.size = 0.25;
 					cube = new THREE.Points(geometry, materialVertex);
 					scene.add(cube);
 					break;
 
-				// TASK: add code for starting/stopping rotations (requirement 3).
+				case 'ArrowLeft':
+					cameraOptions.moveLeft = true;
+					break;
+
+				case 'ArrowRight':
+					cameraOptions.moveRight = true;
+					break;
+
+				case 'ArrowUp':
+					cameraOptions.moveUp = true;
+					break;
+
+				case 'ArrowDown':
+					cameraOptions.moveDown = true;
+					break;
+
+				case 'w':
+					cameraOptions.moveIn = true;
+					break;
+
+				case 's':
+					cameraOptions.moveOut = true;
+					break;
 			}
 		}
+
+		// Handle keyboard presses.
+		function handleKeyUp(event) {
+			switch (event.key) {
+
+				case 'ArrowLeft':
+					cameraOptions.moveLeft = false;
+					break;
+
+				case 'ArrowRight':
+					cameraOptions.moveRight = false;
+					break;
+
+				case 'ArrowUp':
+					cameraOptions.moveUp = false;
+					break;
+
+				case 'ArrowDown':
+					cameraOptions.moveDown = false;
+					break;
+
+				case 'w':
+					cameraOptions.moveIn = false;
+					break;
+
+				case 's':
+					cameraOptions.moveOut = false;
+					break;
+			}
+		}
+
 	</script>
 </body>
 
