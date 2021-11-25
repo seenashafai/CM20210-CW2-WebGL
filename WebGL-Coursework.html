@@ -20,9 +20,14 @@
 
 <body>
 	<script src="three-r134.js"></script>
-	<script src="dat.gui.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/lil-gui@0.14.0"></script>
+
+	<script src="OBJLoader.js"></script>
+	<script></script>
 	<script>
 		"use strict"; // https://stackoverflow.com/q/1335851/72470
+
+
 
 		// Global variables that are available in all functions.
 		// Note: You can add your own here, e.g. to store the rendering mode.
@@ -59,14 +64,18 @@
 			moveOut: false,
 		};
 
+		//Setup error handler
+		/*
+		var objLoader = new THREE.OBJLoader( new THREE.LoadingManager ( loadModel ) );
+								objLoader.load( 'bunny-5000.obj', function ( obj ) { bunny = obj; } );
+								*/
 		init();
 
 		//Create Texture:
 		//Load images:
-
 		const textureLoader = new THREE.TextureLoader();
 		const loader = new THREE.TextureLoader();
-    const cubeMaterials = [
+    const material = [
         new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-one.png') }), //right side
         new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-two.png')}), //left side
         new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-three.png')}), //top side
@@ -75,15 +84,14 @@
         new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-six.png')}), //back side
     ];
 
-
 		// // TASK: Draw a cube (requirement 1)-----------------
 		//Define Box
 		const geometry = new THREE.BoxGeometry(2,2,2);
 		//Define material
-		const material = new THREE.MeshPhongMaterial({ color: 0x00ffff, wireframe: false });
+		//const material = new THREE.MeshPhongMaterial({ color: 0x00ffff, wireframe: false });
 		//Build cube using box geometry & material
 		//Mesh => Takes Geometry and applies Material
-		var cube = new THREE.Mesh( geometry, cubeMaterials );
+		var cube = new THREE.Mesh( geometry, material );
 		cube.position.set(0,0,0)
 
 		//Add cube to scene
@@ -94,7 +102,7 @@
 		animate();
 
 
-		var gui = new dat.GUI();
+		var gui = new lil.GUI();
 
 		var cubeGroup = gui.addFolder('Cube');
 		var drawCube = cubeGroup.add(cubeOptions, 'drawCube').name('Draw Cube')
@@ -114,8 +122,8 @@
 
 		/* Here is the update */
 		var resetSliders = function (name) {
-    for (var i = 0; i < control.__controllers.length; i++) {
-            control.__controllers[i].setValue(0);
+    for (var i = 0; i < control.controllers.length; i++) {
+            control.controllers[i].setValue(0);
     	}
 		};
 
@@ -126,6 +134,31 @@
 			else cameraOptions.orbit = false;
 		});
 
+
+
+		function loadModel() {
+      bunny.traverse( function ( child ) {
+				console.log("doing")
+         if ( child instanceof THREE.Mesh ) {
+             child.geometry.translate(-translate.x, -translate.y, -translate.z);
+             var mesh = new THREE.Mesh( child.geometry, child.material );
+             var useWireFrame = true;
+             if ( useWireFrame ) {
+                 mesh.traverse( function(child) {
+                    child.material.wireframe = true;
+                    child.material.color = new THREE.Color( 0xff0000 );
+                 } );
+             }
+             child.receiveShadow = true;
+             child.castShadow = true;
+          }
+      } );
+      /* Scales the bunny to 50% size, and moves it so that it is within the box when the
+       scene is first loaded. */
+      bunny.position.set( 0, 0 , 0 );
+      bunny.scale.set(scale.actual, scale.actual, scale.actual);
+      scene.add( bunny );
+  }
 
 
 
@@ -154,6 +187,7 @@
 
 			// Draw a helper grid in the x-z plane (note: y is up).
 			scene.add(new THREE.GridHelper(10, 20, 0xffffff));
+
 
 			// TASK: Draw a cube (requirement 1).
 			// TASK: Visualise the axes of the global coordinate system (requirment 2).
