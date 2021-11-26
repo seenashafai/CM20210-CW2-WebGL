@@ -50,8 +50,8 @@
 			}
 		};
 
-		var bunnyParams = {
-                enable: false,
+		var bunnyOptions = {
+      enable: false,
 }
 
 		var cameraOptions = {
@@ -85,6 +85,15 @@
     objloader.load( 'bunny-5000.obj',
 			function ( object ) {
 				bunny = object;
+				bunny.scale.x = 0.4;
+				bunny.scale.y = 0.4;
+				bunny.scale.z = 0.4;
+				bunny.position.set(-0.4,0,-0.1);
+
+				//Create bounding box for bunny:
+				var box = new THREE.Box3().setFromObject( bunny );
+
+
 			});
 
 
@@ -124,7 +133,7 @@
 		});
 
 		var bunnyFolder = gui.addFolder( 'bunny Controls' );
-    var addBunny = bunnyFolder.add( bunnyParams, 'enable' ).name( 'Enable Bunny' )
+    var addBunny = bunnyFolder.add( bunnyOptions, 'enable' ).name( 'Enable Bunny' )
     	.onChange( function(value) {
       	if ( value == true ) scene.add( bunny );
       	else scene.remove( bunny );
