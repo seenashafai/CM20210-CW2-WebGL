@@ -52,6 +52,17 @@
 
 		var bunnyOptions = {
       enable: false,
+			rotation_x: 0,
+			rotation_y: 0,
+			rotation_z: 0,
+			reset: function() {
+				bunny.rotation.x = 0;
+				bunny.rotation.y = 0;
+				bunny.rotation.z = 0;
+				bunnyOptions.rotation_x = 0;
+				bunnyOptions.rotation_y = 0;
+				bunnyOptions.rotation_z = 0;
+			}
 }
 
 		var cameraOptions = {
@@ -117,33 +128,39 @@
 
 		var gui = new dat.GUI();
 
-		var cubeGroup = gui.addFolder('Cube');
-		var drawCube = cubeGroup.add(cubeOptions, 'drawCube').name('Draw Cube')
+		var drawGroup = gui.addFolder('Objects');
+		var drawCube = drawGroup.add(cubeOptions, 'drawCube').name('Enable Cube')
 			.onChange((value) => {
 				if (value == true) scene.add(cube);
 				else scene.remove(cube);
 		});
-
-		var control = gui.addFolder('Control');
-		control.add(cubeOptions, 'rotation_x', 0,10,0.1).name('Rotation - X');
-		control.add(cubeOptions, 'rotation_y', 0,10,0.1).name('Rotation - Y');
-		control.add(cubeOptions, 'rotation_z', 0,10,0.1).name('Rotation - Z');
-		gui.add(cubeOptions, 'reset').onChange((value) =>{
-			resetSliders();
-		});
-
-		var bunnyFolder = gui.addFolder( 'bunny Controls' );
-    var addBunny = bunnyFolder.add( bunnyOptions, 'enable' ).name( 'Enable Bunny' )
+		var addBunny = drawGroup.add( bunnyOptions, 'enable' ).name( 'Enable Bunny' )
     	.onChange( function(value) {
       	if ( value == true ) scene.add( bunny );
       	else scene.remove( bunny );
     });
 
+		var control = gui.addFolder('Cube Control');
+		control.add(cubeOptions, 'rotation_x', 0,10,0.1).name('Rotation - X');
+		control.add(cubeOptions, 'rotation_y', 0,10,0.1).name('Rotation - Y');
+		control.add(cubeOptions, 'rotation_z', 0,10,0.1).name('Rotation - Z');
+
+		var bunnyFolder = gui.addFolder('Bunny Control');
+		bunnyFolder.add(bunnyOptions, 'rotation_x', 0,10,0.1).name('Rotation - X');
+		bunnyFolder.add(bunnyOptions, 'rotation_y', 0,10,0.1).name('Rotation - Y');
+		bunnyFolder.add(bunnyOptions, 'rotation_z', 0,10,0.1).name('Rotation - Z');
+
 
 		/* Here is the update */
-		var resetSliders = function (name) {
+		var resetCubeSliders = function (name) {
     for (var i = 0; i < control.__controllers.length; i++) {
             control.__controllers[i].setValue(0);
+    	}
+		};
+
+		var resetBunnySliders = function (name) {
+    for (var i = 0; i < bunnyFolder.__controllers.length; i++) {
+            bunnyFolder.__controllers[i].setValue(0);
     	}
 		};
 
@@ -154,6 +171,12 @@
 			else cameraOptions.orbit = false;
 		});
 
+		gui.add(cubeOptions, 'reset').name('Reset Cube').onChange((value) =>{
+			resetCubeSliders();
+		});
+		gui.add(bunnyOptions, 'reset').name('Reset Bunny').onChange((value) =>{
+			resetBunnySliders();
+		});
 
 
 
@@ -167,7 +190,13 @@
 				cube.rotation.x += cubeOptions.rotation_x * 0.01;
 				cube.rotation.y += cubeOptions.rotation_y * 0.01;
 				cube.rotation.z += cubeOptions.rotation_z * 0.01;
-
+			}
+		}
+		function bunnyControl() {
+			if (bunnyOptions.enable) {
+				bunny.rotation.x += bunnyOptions.rotation_x * 0.01;
+				bunny.rotation.y += bunnyOptions.rotation_y * 0.01;
+				bunny.rotation.z += bunnyOptions.rotation_z * 0.01;
 			}
 		}
 
@@ -250,6 +279,7 @@
 		function animate() {
 			requestAnimationFrame(animate);
 			cubeControl();
+			bunnyControl();
 
 			var time = performance.now();
       var delta = ( time - tPrev ) / 1000;
