@@ -26,7 +26,7 @@
 		"use strict"; // https://stackoverflow.com/q/1335851/72470
 
 		// Global variables that are available in all functions.
-		// Note: You can add your own here, e.g. to store the rendering mode.
+		// Note: You can add your own here, e.g. to store the ing mode.
 		var camera, scene, renderer, mesh, bunny;
 		var x = new THREE.Vector3(1,0,0);
 		var y = new THREE.Vector3(0,1,0);
@@ -100,10 +100,7 @@
 				bunny.scale.y = 0.4;
 				bunny.scale.z = 0.4;
 				bunny.position.set(-0.4,0,-0.1);
-
-				//Create bounding box for bunny:
-				var box = new THREE.Box3().setFromObject( bunny );
-
+				//scene.add( pivot );
 
 			});
 
@@ -115,8 +112,8 @@
 		const material = new THREE.MeshPhongMaterial({ color: 0x00ffff, wireframe: false });
 		//Build cube using box geometry & material
 		//Mesh => Takes Geometry and applies Material
-		var cube = new THREE.Mesh( geometry, cubeMaterials );
-		cube.position.set(0,0,0)
+		var cube = new THREE.Mesh( geometry, cubeMaterials);
+		//cube.position.set(0,0,0)
 
 		//Add cube to scene
 		scene.add( cube );//Default pos = (0,0,0)
@@ -274,6 +271,59 @@
 			renderer.setSize(window.innerWidth, window.innerHeight);
 		}
 
+		function setBunnyRender(mode) {
+			var b;
+	 			if (mode == "edge") {
+					console.log('edging');
+					if (!bunnyOptions.enable) {
+						scene.add(bunny);
+						bunnyOptions.enable == true;
+						scene.remove(b);
+					};
+						bunny.children[0].material.wireframe = true;
+					}
+				if (mode == "vertex") {
+					scene.remove(bunny);
+					bunnyOptions.enable = false;
+					var bmat = new THREE.PointsMaterial({color: 0xFF0000});
+					var bgeo = bunny.children[0].geometry;
+					bmat.size = 0.1;
+					b = new THREE.Points( bgeo, bmat );
+					scene.add(b);
+					}
+				if (mode == "face") {
+					if (!bunnyOptions.enable) {
+						scene.add(bunny);
+						bunnyOptions.enable == true;
+						scene.remove(b);
+					};
+					bunny.children[0].material.wireframe = false;
+				}
+		}
+
+		function setCubeRender(mode) {
+			if (cubeOptions.drawCube) {
+				if (mode == "edge") {
+					scene.remove(cube);
+					const materialWire = new THREE.MeshPhongMaterial({ color: 0x00ffff, wireframe: true });
+					cube = new THREE.Mesh( geometry, materialWire );
+					scene.add(cube);
+					}
+				if (mode == "vertex") {
+					scene.remove(cube);
+					const materialVertex = new THREE.PointsMaterial({color: 0xFF0000});
+					materialVertex.size = 0.25;
+					cube = new THREE.Points(geometry, materialVertex);
+					scene.add(cube);
+					}
+				if (mode == "face") {
+
+					scene.remove(cube);
+					cube = new THREE.Mesh(geometry, material );
+					scene.add(cube);
+				}
+			}
+		}
 
 		// Animation loop function. This function is called whenever an update is required.
 		function animate() {
@@ -310,8 +360,17 @@
     tPrev = time;
 
 			// TASK: This is a good place for code that rotates your cube (requirement 3).
-			if (cameraOptions.orbit)
+			if (cameraOptions.orbit) {
+				if (!cameraOptions.moveLeft || !cameraOptions.moveRight) {
+					if (camera.position.z >= 0) {
+						camera.up = new THREE.Vector3(0,1,0);
+					} else {
+						camera.up = new THREE.Vector3(0,-1,0);
+					}
+				}
 				camera.lookAt(0,0,0);
+
+			}
 			// Render the current scene to the screen.
 			renderer.render(scene, camera);
 		}
@@ -323,24 +382,18 @@
 			switch (event.key) {
 				// Render modes.
 				case 'f': // f = face
-					scene.remove(cube);
-					cube = new THREE.Mesh(geometry, material );
-					scene.add(cube);
+					setCubeRender("face");
+					setBunnyRender("face");
 					break;
 
 				case 'e': // e = edge
-					scene.remove(cube);
-					const materialWire = new THREE.MeshPhongMaterial({ color: 0x00ffff, wireframe: true });
-					cube = new THREE.Mesh( geometry, materialWire );
-					scene.add(cube);
+					setCubeRender("edge");
+					setBunnyRender("edge");
 					break;
 
 				case 'v': // v = vertex
-					scene.remove(cube);
-					const materialVertex = new THREE.PointsMaterial({color: 0xFF0000});
-					materialVertex.size = 0.25;
-					cube = new THREE.Points(geometry, materialVertex);
-					scene.add(cube);
+					setCubeRender("vertex");
+					setBunnyRender("vertex");
 					break;
 
 				case 'ArrowLeft':
