@@ -22,20 +22,40 @@
 	<script src="three-r134.js"></script>
 	<script src="dat.gui.min.js"></script>
 	<script src="OBJLoader.js"></script>
-	<script>
+
+
+
+<script type="module">
+
 		"use strict"; // https://stackoverflow.com/q/1335851/72470
+		import * as CANNON from 'https://cdn.skypack.dev/cannon-es/dist/cannon-es.js'
+		const world = new CANNON.World({gravity: new CANNON.Vec3(0, -9.82, 0)});
+
+
+
+
+
+
+		// Setup our physics world
+		//const world = new CANNON.World({gravity: new CANNON.Vec3(0, -9.82, 0)});
 
 		// Global variables that are available in all functions.
 		// Note: You can add your own here, e.g. to store the ing mode.
-		var camera, scene, renderer, mesh, bunny, vBunny;
+		var camera, scene, renderer, mesh, bunny, vBunny, boxBody, gravBox,cubeMesh, grid ;
 		var x = new THREE.Vector3(1,0,0);
 		var y = new THREE.Vector3(0,1,0);
 		var z = new THREE.Vector3(0,0,1);
+
+
+
+
 
 		// Initialise the scene, and draw it for the first time.
 		var cubeOptions = {
 			wireframe: false,
 			drawCube: true,
+			diceMode: false,
+			spin: false,
 			rotation_x: 0,
 			rotation_y: 0,
 			rotation_z: 0,
@@ -77,6 +97,19 @@
 		};
 
 		init();
+//Gravity Controls
+		const size = 1
+		const halfExtents = new CANNON.Vec3(size, size, size)
+		const boxShape = new CANNON.Box(halfExtents)
+		boxBody = new CANNON.Body({ mass: 1, shape: boxShape })
+		world.addBody(boxBody)
+
+		const groundBody = new CANNON.Body({
+			type: CANNON.Body.STATIC,
+			shape: new CANNON.Plane(),
+		})
+		groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0) // make it face up
+		world.addBody(groundBody)
 
 		//Create Texture:
 		//Load images:
@@ -92,7 +125,6 @@
         new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-six.png')}), //back side
     ];
 
-		const objectLoader = new THREE.OBJLoader();
 		var objloader = new THREE.OBJLoader( );
     objloader.load( 'bunny-5000.obj',
 			function ( object ) {
@@ -123,7 +155,11 @@
 		var velocity = new THREE.Vector3();
 		var tPrev = performance.now();
 
+		const timeStep = 1 / 60; // seconds
+		var lastCallTime;
+
 		animate();
+
 
 
 		var gui = new dat.GUI();
@@ -144,6 +180,7 @@
 		control.add(cubeOptions, 'rotation_x', 0,10,0.1).name('Rotation - X');
 		control.add(cubeOptions, 'rotation_y', 0,10,0.1).name('Rotation - Y');
 		control.add(cubeOptions, 'rotation_z', 0,10,0.1).name('Rotation - Z');
+
 
 		var bunnyFolder = gui.addFolder('Bunny Control');
 		bunnyFolder.add(bunnyOptions, 'rotation_x', 0,10,0.1).name('Rotation - X');
@@ -166,8 +203,11 @@
 
 		var cam = gui.addFolder('Camera');
 		cam.add(cameraOptions, 'orbit').onChange((value) =>{
-			if (value == 1)
+			if (value == 1) {
 				cameraOptions.orbit = true;
+				console.log(cube.quaternion);
+			}
+
 			else cameraOptions.orbit = false;
 		});
 
@@ -178,6 +218,65 @@
 			resetBunnySliders();
 		});
 
+		var diceFolder = gui.addFolder('Dice Control');
+		diceFolder.add(cubeOptions, 'diceMode').name('Dice Mode').onChange((value) =>{
+			if (value == 1){
+
+				cubeOptions.diceMode = true;
+				setDiceMode(true);
+				console.log("yea");
+				throwDice();
+
+			}
+			else {
+
+				cubeOptions.diceMode = false;
+				setDiceMode(false)
+			}
+		});
+		var roll = { add:function(){
+			console.log("rolled")
+		}};
+		diceFolder.add(roll,'add').name('Roll Dice');
+
+
+		function setDiceMode(diceMode) {
+			var time = performance.now();
+      var delta = ( time - tPrev ) / 1000;
+
+			const geometry = new THREE.PlaneGeometry( 30, 30 );
+			const material = new THREE.MeshBasicMaterial( {color: 0x808080, side: THREE.DoubleSide} );
+			const plane = new THREE.Mesh( geometry, material );
+
+			if (diceMode) {
+				scene.remove(grid);
+				scene.add( plane );
+				velocity.z += 1000.0 * delta;
+	      camera.translateZ( velocity.z * delta );
+				plane.rotation.x = Math.PI / 2;
+			} else {
+				velocity.z -= 1000.0 * delta;
+	      camera.translateZ( velocity.z * delta );
+				scene.remove(plane);
+				scene.add(grid);
+
+			}
+		}
+
+		function throwDice() {
+				console.log("throwing");
+				boxBody.position.set(0,5,0);
+				cubeOptions.spin = true;
+				var ranX = Math.floor(Math.random() * 10) + 1;
+				var ranY = Math.floor(Math.random() * 10) + 1;
+				var ranZ = Math.floor(Math.random() * 10) + 1;
+
+
+				boxBody.angularVelocity.set(ranX,ranY,ranZ);
+				setTimeout(() => {  boxBody.angularVelocity.set(0,0,0); }, 2000);
+				console.log(cube.rotation.x, "oye");
+
+			}
 
 
 		// Listen for keyboard events, to react to them.
@@ -200,6 +299,42 @@
 			}
 		}
 
+		function stopRoll() {
+			console.log(boxBody.quaternion);
+			localUp.set(0,1,0);
+			boxBody.quaternion.inverse(inverseBodyOrientation);
+			inverseBodyOrientation.vmult(localUp, localUp);
+			var result;
+
+			// Check which side is up
+			if(localUp.x > limit){
+					// Positive x is up
+					alert("You rolled: 1");
+			} else if(localUp.x < -limit){
+					alert("You rolled: 2");
+					// Negative x is up
+			} else if(localUp.y > limit){
+				alert("You rolled: 3");
+					// Positive y is up
+			} else if(localUp.y < -limit){
+				alert("You rolled: 4");
+				result = 4;
+					// Negative y is up
+			} else if(localUp.z > limit){
+				alert("You rolled: 5")
+				result - 5;
+					// Positive z is up
+			} else if(localUp.z < -limit){
+				alert("You rolled: 6");
+				result = 6;
+					// Negative z is up
+			} else {
+				console.log("not flat")
+					// The box is not resting flat on the ground plane
+			}
+
+		}
+
 		// Scene initialisation. This function is only run once, at the very beginning.
 		function init() {
 			scene = new THREE.Scene();
@@ -210,7 +345,8 @@
 			camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 			// Draw a helper grid in the x-z plane (note: y is up).
-			scene.add(new THREE.GridHelper(10, 20, 0xffffff));
+			grid = new THREE.GridHelper(10, 20, 0xffffff)
+			scene.add(grid);
 
 			// TASK: Visualise the axes of the global coordinate system (requirment 2).------
 
@@ -318,7 +454,6 @@
 					scene.add(cube);
 					}
 				if (mode == "face") {
-
 					scene.remove(cube);
 					cube = new THREE.Mesh(geometry, material );
 					scene.add(cube);
@@ -327,10 +462,35 @@
 		}
 
 		// Animation loop function. This function is called whenever an update is required.
+
+		var localUp = new CANNON.Vec3();
+		var inverseBodyOrientation = new CANNON.Quaternion();
+		var limit = Math.sin(Math.PI/4);
+
 		function animate() {
 			requestAnimationFrame(animate);
+			if (!lastCallTime) {
+		    world.step(timeStep)
+		  } else {
+		   	const dt = time - lastCallTime
+		    world.step(timeStep, dt)
+		  }
+		  lastCallTime = time
 			cubeControl();
 			bunnyControl();
+
+
+			if (cubeOptions.spin) {
+
+					if (boxBody.angularVelocity.x < 0.001 && boxBody.angularVelocity.y < 0.001 && boxBody.angularVelocity.z < 0.001) {
+						console.log('stopped rolling');
+						stopRoll();
+						cubeOptions.spin = false;
+
+					}
+
+			}
+
 
 			var time = performance.now();
       var delta = ( time - tPrev ) / 1000;
@@ -338,6 +498,13 @@
 			velocity.x -= velocity.x * 1.2 * delta;
 			velocity.y -= velocity.y * 1.2 * delta;
 			velocity.z -= velocity.z * 1.2 * delta;
+
+			if (cubeOptions.diceMode) {
+
+			cube.position.copy(boxBody.position)
+  		cube.quaternion.copy(boxBody.quaternion)
+
+		}
 
 
 
