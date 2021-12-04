@@ -10,7 +10,6 @@
 			margin: 0;
 			overflow: hidden;
 		}
-
 		canvas {
 			width: 100%;
 			height: 100%;
@@ -30,19 +29,19 @@
 		const world = new CANNON.World({gravity: new CANNON.Vec3(0, -9.82, 0)}); //Gravity: 9.82m/s
 
 		//Global variables
-		var camera, scene, renderer, mesh, bunny, vBunny, boxBody, plane, cubeMesh, grid ;
+		var camera, scene, renderer, mesh, bunny, vBunny, mBunny, boxBody, plane, cubeMesh, grid, control;
 
 		//Create set of paramters for Cube
 		var cubeOptions = {
 			wireframe: false,
 			enable: true,
-			diceMode: false,
 			spin: false,
 			rotation_x: 0,
 			rotation_y: 0,
 			rotation_z: 0,
 			//Reset function: invoked by GUI button to reset cube params
 			reset: function() {
+				cube.position.set(0,0,0);
 				cube.rotation.x = 0;
 				cube.rotation.y = 0;
 				cube.rotation.z = 0;
@@ -61,12 +60,20 @@
 			rotation_z: 0,
 			//Reset function: invoked by GUI button to reset cube params
 			reset: function() {
+				//XXX: cmon
 				bunny.rotation.x = 0;
 				bunny.rotation.y = 0;
 				bunny.rotation.z = 0;
 				bunnyOptions.rotation_x = 0;
 				bunnyOptions.rotation_y = 0;
 				bunnyOptions.rotation_z = 0;
+				vBunny.rotation.x = 0;
+				vBunny.rotation.y = 0;
+				vBunny.rotation.z = 0;
+				mBunny.rotation.x = 0;
+				mBunny.rotation.y = 0;
+				mBunny.rotation.z = 0;
+
 			}
 }
 		//Create set of parameters for camera in scnee
@@ -130,6 +137,7 @@
 				bunny.scale.y = 0.4;
 				bunny.scale.z = 0.4;
 				bunny.position.set(-0.4,0,-0.1);
+				mBunny = bunny;
 			});
 
 
@@ -155,97 +163,83 @@
 
 		function create_gui() {
 
-		//Define GUI from dat-gui (dat.gui.min.js)
-		var gui = new dat.GUI(); //Instantiate GUI
+			//Define GUI from dat-gui (dat.gui.min.js)
+			var gui = new dat.GUI(); //Instantiate GUI
 
-		//Create folder to hold basic objects: Cube, Bunny
-		var drawGroup = gui.addFolder('Objects');
-		//Button: toggles state of 'cubeOptions.enable'
-		var addCube = drawGroup.add(cubeOptions, 'enable').name('Enable Cube')
-			.onChange((value) => {
-				if (value == true) scene.add(cube); //Add cube to scene
-				else scene.remove(cube); //Remove cube from scene
-		});
-		//Button: toggles state of 'bunnyOptions.enable'
-		var addBunny = drawGroup.add( bunnyOptions, 'enable' ).name( 'Enable Bunny' )
-    	.onChange( function(value) {
-      	if ( alue == true) scene.add(bunny); //Add bunny to scene
-      	else scene.remove(bunny); //Remove bunny from scene
-    });
+			//Create folder to hold basic objects: Cube, Bunny
+			var drawGroup = gui.addFolder('Objects');
+			//Button: toggles state of 'cubeOptions.enable'
+			var addCube = drawGroup.add(cubeOptions, 'enable').name('Enable Cube')
+				.onChange((value) => {
+					if (value == true) scene.add(cube); //Add cube to scene
+					else scene.remove(cube); //Remove cube from scene
+			});
+			//Button: toggles state of 'bunnyOptions.enable'
+			var addBunny = drawGroup.add( bunnyOptions, 'enable' ).name( 'Enable Bunny' )
+	    	.onChange( function(value) {
+	      	if ( value == true) scene.add(bunny); //Add bunny to scene
+	      	else scene.remove(bunny); //Remove bunny from scene
+	    });
 
-		//Create folder to hold parameters of cube rotation
-		var control = gui.addFolder('Cube Control');
-		control.add(cubeOptions, 'rotation_x', 0,10,0.1).name('Rotation - X');
-		control.add(cubeOptions, 'rotation_y', 0,10,0.1).name('Rotation - Y');
-		control.add(cubeOptions, 'rotation_z', 0,10,0.1).name('Rotation - Z');
+			//Create folder to hold parameters of cube rotation
+			control = gui.addFolder('Cube Control');
+			control.add(cubeOptions, 'rotation_x', 0,10,0.1).name('Rotation - X');
+			control.add(cubeOptions, 'rotation_y', 0,10,0.1).name('Rotation - Y');
+			control.add(cubeOptions, 'rotation_z', 0,10,0.1).name('Rotation - Z');
 
-		//Create folder to hold parameters of bunny rotation
-		var bunnyFolder = gui.addFolder('Bunny Control');
-		bunnyFolder.add(bunnyOptions, 'rotation_x', 0,10,0.1).name('Rotation - X');
-		bunnyFolder.add(bunnyOptions, 'rotation_y', 0,10,0.1).name('Rotation - Y');
-		bunnyFolder.add(bunnyOptions, 'rotation_z', 0,10,0.1).name('Rotation - Z');
+			//Create folder to hold parameters of bunny rotation
+			var bunnyFolder = gui.addFolder('Bunny Control');
+			bunnyFolder.add(bunnyOptions, 'rotation_x', 0,10,0.1).name('Rotation - X');
+			bunnyFolder.add(bunnyOptions, 'rotation_y', 0,10,0.1).name('Rotation - Y');
+			bunnyFolder.add(bunnyOptions, 'rotation_z', 0,10,0.1).name('Rotation - Z');
 
-		//Create folder to hold parameters for camera
-		var cam = gui.addFolder('Camera');
-		//Button: toggles state of camera for Orbit mode
-		cam.add(cameraOptions, 'orbit').onChange((value) =>{
-			if (value == 1) cameraOptions.orbit = true; //Enable orbit mode
-			else cameraOptions.orbit = false; //Disable orbit mode
-		});
+			//Create folder to hold parameters for camera
+			var cam = gui.addFolder('Camera');
+			//Button: toggles state of camera for Orbit mode
+			cam.add(cameraOptions, 'orbit').onChange((value) =>{
+				if (value == 1) cameraOptions.orbit = true; //Enable orbit mode
+				else cameraOptions.orbit = false; //Disable orbit mode
+			});
 
-		//Buttons:
-		gui.add(cubeOptions, 'reset').name('Reset Cube').onChange((value) =>{
-			resetCubeSliders(); //When pressed, resets sliders for cube rotation
-		});
-		gui.add(bunnyOptions, 'reset').name('Reset Bunny').onChange((value) =>{
-			resetBunnySliders();//When pressed, resets sliders for bunny rotation
-		});
+			//Buttons:
+			gui.add(cubeOptions, 'reset').name('Reset Cube').onChange((value) =>{
+				resetCubeSliders(); //When pressed, resets sliders for cube rotation
+			});
+			gui.add(bunnyOptions, 'reset').name('Reset Bunny').onChange((value) =>{
+				resetBunnySliders();//When pressed, resets sliders for bunny rotation
+			});
 
-		//Create folder to hold options for 'Dice Mode'
-		var diceFolder = gui.addFolder('Dice Control');
-		diceFolder.add(cubeOptions, 'diceMode').name('Dice Mode').onChange((value) =>{
-			if (value == 1){
-				//Enable dice mode in cube parameters
-				cubeOptions.diceMode = true;
-				//Remove helper grid & add dice plane
-				scene.remove(grid);
-				scene.add(plane);
-			}
-			else {
-				cubeOptions.diceMode = false;
-				//Remove dice plane & add helper grid
-				scene.remove(plane);
-				scene.add(grid);
-			}
-		});
-		//Button: Executes dice roll when pressed
-		var roll = { add:function(){
-			throwDice();
-		}};
-		//Add button to roll dice
-		diceFolder.add(roll,'add').name('Roll Dice');
-	}
+			//Button: Executes dice roll when pressed
+			var roll = { add:function(){
+				throwDice();
+			}};
+			//Add button to roll dice
+			gui.add(roll,'add').name('Roll Dice');
 
-	//Reset rotation sliders for cube (x, y, z)
-	var resetCubeSliders = function (name) {
-	//__controllers -> Array of variable objects in folder (e.g. slider values)
-	//Iterate through each slider
-	for (var i = 0; i < control.__controllers.length; i++) {
-					control.__controllers[i].setValue(0); //Set each slider to 0
+
+			//Reset rotation sliders for bunny (x, y, z)
+			var resetBunnySliders = function (name) {
+			//__controllers -> Array of variable objects in folder (e.g. slider values)
+			//Iterate through each slider
+			for (var i = 0; i < bunnyFolder.__controllers.length; i++) {
+							bunnyFolder.__controllers[i].setValue(0);//Set each slider to 0
+				}
+			};
 		}
-	};
 
-	//Reset rotation sliders for bunny (x, y, z)
-	var resetBunnySliders = function (name) {
-	//__controllers -> Array of variable objects in folder (e.g. slider values)
-	//Iterate through each slider
-	for (var i = 0; i < bunnyFolder.__controllers.length; i++) {
-					bunnyFolder.__controllers[i].setValue(0);//Set each slider to 0
-		}
-	};
+		//Reset rotation sliders for cube (x, y, z)
+		var resetCubeSliders = function (name) {
+		//__controllers -> Array of variable objects in folder (e.g. slider values)
+		//Iterate through each slider
+		for (var i = 0; i < control.__controllers.length; i++) {
+						control.__controllers[i].setValue(0); //Set each slider to 0
+			}
+		};
 
 	//Function to manage rolling dice
 	function throwDice() {
+		cubeOptions.reset();
+		resetCubeSliders();
 			boxBody.position.set(0,5,0);//Set starting position of dice
 			//Add pre-spin to dice
 			cubeOptions.spin = true;
@@ -317,6 +311,8 @@
 				console.log("not flat")
 				//No greatest up component i.e. dice not flat
 			}
+			cubeOptions.spin = false;
+
 		}
 
 		// Scene initialisation. This function is only run once, at the very beginning.
@@ -396,29 +392,23 @@
 
 		function setBunnyRender(mode,b) {
 	 			if (mode == "edge") {
-						if (bunnyOptions.vertex) {
-							console.log('jefe');
-							scene.remove(vBunny);
-							scene.add(bunny);
-							bunnyOptions.vertex = false;
-						}
+						scene.remove(bunny)
+						bunny = mBunny
 						bunny.children[0].material.wireframe = true;
+						scene.add(bunny)
 					}
 				if (mode == "vertex") {
 					scene.remove(bunny)
 					bunnyOptions.vertex = true;
-
-					scene.add(vBunny)
-
-
+					bunny = vBunny
+					scene.add(bunny)
 					}
 				if (mode == "face") {
-					if (bunnyOptions.vertex) {
-						scene.remove(vBunny)
-						scene.add(bunny)
-						bunnyOptions.vertex = false;
-					}
+					scene.remove(bunny);
+					bunny = mBunny;
 					bunny.children[0].material.wireframe = false;
+					scene.add(bunny);
+
 				}
 		}
 
@@ -462,11 +452,13 @@
 
 
 			if (cubeOptions.spin) {
+				cube.position.copy(boxBody.position)
+				cube.quaternion.copy(boxBody.quaternion)
 
 					if (boxBody.angularVelocity.x < 0.001 && boxBody.angularVelocity.y < 0.001 && boxBody.angularVelocity.z < 0.001) {
 						console.log('stopped rolling');
 						stopRoll();
-						cubeOptions.spin = false;
+
 
 					}
 
@@ -479,14 +471,6 @@
 			velocity.x -= velocity.x * 1.2 * delta;
 			velocity.y -= velocity.y * 1.2 * delta;
 			velocity.z -= velocity.z * 1.2 * delta;
-
-			if (cubeOptions.diceMode) {
-
-			cube.position.copy(boxBody.position)
-  		cube.quaternion.copy(boxBody.quaternion)
-
-		}
-
 
 
       //if the user pressed 'up' or 'w', set velocity.z to a value > 0.
