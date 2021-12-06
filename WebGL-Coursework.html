@@ -115,7 +115,6 @@
 	}
 
 		//Load texture for dice
-		const textureLoader = new THREE.TextureLoader();
 		const loader = new THREE.TextureLoader();
     const cubeMaterials = [
         new THREE.MeshBasicMaterial({ map: loader.load('Textures/dice-one.png') }), //right side
@@ -128,8 +127,8 @@
 
 		//Load bunny object using OBJLoader.js
 		var objloader = new THREE.OBJLoader( );
-    objloader.load( 'bunny-5000.obj',
-			function ( object ) {
+    new THREE.OBJLoader.load('bunny-5000.obj',
+			function (object) {
 				bunny = object;
 				//Manually set scale and position of bunny
 				//XXX: Optimize with bounding box scaling factors
@@ -139,7 +138,6 @@
 				bunny.position.set(-0.4,0,-0.1);
 				mBunny = bunny;
 			});
-
 
 		//TASK: Draw a cube (requirement 1)-----------------
 		//Define cube from box geometry & phong material
@@ -153,8 +151,8 @@
 
 		//Define variables for animate function
 		//TODO: Find a place for this
-		var velocity = new THREE.Vector3();
 		var tPrev = performance.now(); //Get current timestamp
+		var velocity = new THREE.Vector3();
 		const timeStep = 1 / 60; // seconds
 		var lastCallTime;
 
@@ -390,45 +388,60 @@
 			renderer.setSize(window.innerWidth, window.innerHeight);
 		}
 
-		function setBunnyRender(mode,b) {
+		//Sets render mode
+		function setBunnyRender(mode) {
 	 			if (mode == "edge") {
+						//Remove current version of bunny
 						scene.remove(bunny)
-						bunny = mBunny
+						bunny = mBunny //Update bunny
+						//Update material wireframe
 						bunny.children[0].material.wireframe = true;
+						//Restore bunny to scene
 						scene.add(bunny)
 					}
 				if (mode == "vertex") {
+					//Remove current version of bunny
 					scene.remove(bunny)
-					bunnyOptions.vertex = true;
+					//Update bunny
 					bunny = vBunny
+					//Return bunny to scene
 					scene.add(bunny)
 					}
 				if (mode == "face") {
+					//Remove current version of bunny
 					scene.remove(bunny);
+					//Retrieve original bunny version
 					bunny = mBunny;
+					//Remove wireframe option
 					bunny.children[0].material.wireframe = false;
+					//Restore bunny to scene
 					scene.add(bunny);
 
 				}
 		}
 
+		//Manage render modes for cube
 		function setCubeRender(mode) {
-			if (cubeOptions.enable) {
+			if (cubeOptions.enable) { //Check if cube is enabled
 				if (mode == "edge") {
-					scene.remove(cube);
+					scene.remove(cube); //remove cube
+					//Create wireframe material & apply to cube
 					const materialWire = new THREE.MeshPhongMaterial({ color: 0x00ffff, wireframe: true });
 					cube = new THREE.Mesh( geometry, materialWire );
-					scene.add(cube);
+					scene.add(cube); //Restore cube
 					}
 				if (mode == "vertex") {
-					scene.remove(cube);
+					scene.remove(cube);//Remove cube
+					//Create vertex (pointsMaterial) material & apply to cube
 					const materialVertex = new THREE.PointsMaterial({color: 0xFF0000});
-					materialVertex.size = 0.25;
+					materialVertex.size = 0.25; //Set size of each vertex point
 					cube = new THREE.Points(geometry, materialVertex);
+					//Restore cube to scene
 					scene.add(cube);
 					}
 				if (mode == "face") {
-					scene.remove(cube);
+					scene.remove(cube); //Remove cube
+					//Re-create basic cube object & add to scene
 					cube = new THREE.Mesh(geometry, material );
 					scene.add(cube);
 				}
@@ -440,40 +453,41 @@
 
 		function animate() {
 			requestAnimationFrame(animate);
+			var time = performance.now();//get current time
+      var delta = ( time - tPrev ) / 1000;//get timestep
+			//Increment cannon world simulation
 			if (!lastCallTime) {
-		    world.step(timeStep)
+		    world.step(timeStep)//Needs to be called each frame
 		  } else {
+				//dt ensures each frame of simulation runs at same speed
 		   	const dt = time - lastCallTime
 		    world.step(timeStep, dt)
 		  }
 		  lastCallTime = time
-			cubeControl();
-			bunnyControl();
+			cubeControl();//Run cube rotation function
+			bunnyControl();//Run bunny rotation function
 
+			//DICE MODE OPTIONS ---------
 
-			if (cubeOptions.spin) {
-				cube.position.copy(boxBody.position)
-				cube.quaternion.copy(boxBody.quaternion)
+			if (cubeOptions.spin) {//Only execute while cube is spinning
+				//Combines physics object & threejs object
+				cube.position.copy(boxBody.position) //Translate position data of cube to physics object
+				cube.quaternion.copy(boxBody.quaternion) //Translate rotation data of cube to physics object
 
-					if (boxBody.angularVelocity.x < 0.001 && boxBody.angularVelocity.y < 0.001 && boxBody.angularVelocity.z < 0.001) {
-						console.log('stopped rolling');
-						stopRoll();
-
-
-					}
-
+				//Checks angular velocity, waits for cube to stop spinning
+				if (boxBody.angularVelocity.x < 0.001 && boxBody.angularVelocity.y < 0.001 && boxBody.angularVelocity.z < 0.001) {
+					stopRoll();//Run function to stop dice roll
+				}
 			}
 
+			//END DICE MODE OPTIONS-----------
 
-			var time = performance.now();
-      var delta = ( time - tPrev ) / 1000;
-
+			//Decrement velocity by delta factor: always decelerating
 			velocity.x -= velocity.x * 1.2 * delta;
 			velocity.y -= velocity.y * 1.2 * delta;
 			velocity.z -= velocity.z * 1.2 * delta;
 
 
-      //if the user pressed 'up' or 'w', set velocity.z to a value > 0.
       if ( cameraOptions.moveUp ) velocity.y += 3.0 * delta;
       	camera.translateY( velocity.y * delta );
 
@@ -493,7 +507,6 @@
       	camera.translateZ( velocity.z * delta );
     tPrev = time;
 
-			// TASK: This is a good place for code that rotates your cube (requirement 3).
 			if (cameraOptions.orbit) {
 				if (!cameraOptions.moveLeft || !cameraOptions.moveRight) {
 					if (camera.position.z >= 0) {
