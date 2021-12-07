@@ -132,6 +132,7 @@
 				bunny = object;
 				//Manually set scale and position of bunny
 				//XXX: Optimize with bounding box scaling factors
+				const bV = new THREE.Vector3(0.4,0.4,0.4)
 				bunny.scale.x = 0.4;
 				bunny.scale.y = 0.4;
 				bunny.scale.z = 0.4;
@@ -455,8 +456,7 @@
 
 		function animate() {
 			requestAnimationFrame(animate);
-			var time = performance.now();//get current time
-      var delta = ( time - tPrev ) / 1000//get timestep
+
 			//Increment cannon world simulation
 			if (!lastCallTime) {
 		    world.step(timeStep)//Needs to be called each frame
@@ -468,6 +468,9 @@
 		  lastCallTime = time
 			cubeControl();//Run cube rotation function
 			bunnyControl();//Run bunny rotation function
+
+			var time = performance.now();//get current time
+      var delta = ( time - tPrev ) / 1000;//get timestep
 
 			//DICE MODE OPTIONS ---------
 
