@@ -549,11 +549,13 @@
 
 				case 'v': // v = vertex
 					setCubeRender("vertex");
+					//Create a new bunny made from points material
 					var bmat = new THREE.PointsMaterial({color: 0xFF0000});
-					var bgeo = bunny.children[0].geometry;
+					var bgeo = bunny.children[0].geometry;//Copy geometry from standard bunny
 
 					bmat.size = 0.025;
 					vBunny = new THREE.Points( bgeo, bmat );
+					//Scale & position bunny to fit inside cube
 					vBunny.scale.x = 0.4;
 					vBunny.scale.y = 0.4;
 					vBunny.scale.z = 0.4;
