@@ -492,26 +492,29 @@
 			velocity.y -= velocity.y * 1.2 * delta;
 			velocity.z -= velocity.z * 1.2 * delta;
 
+			//Translate camera using velocity & delta value:
+			//If up arrow pressed
+      if ( cameraOptions.moveUp ) velocity.y += 3.0 * delta; //Increase y (up/down) vector velocity
+      	camera.translateY( velocity.y * delta ); //Apply velocity increase to camera translation
 
-      if ( cameraOptions.moveUp ) velocity.y += 3.0 * delta;
-      	camera.translateY( velocity.y * delta );
+			if ( cameraOptions.moveDown ) velocity.y -= 3.0 * delta;//Decrease y (up/down) vector velocity
+      	camera.translateY( velocity.y * delta );//Apply velocity increase to camera translation
 
-			if ( cameraOptions.moveDown ) velocity.y -= 3.0 * delta;
-      	camera.translateY( velocity.y * delta );
+			if ( cameraOptions.moveRight ) velocity.x += 3.0 * delta;//Increase x (right/left) vector velocity
+      	camera.translateX( velocity.x * delta );//Apply velocity increase to camera translation
 
-			if ( cameraOptions.moveLeft ) velocity.x -= 3.0 * delta;
-      	camera.translateX( velocity.x * delta );
+			if ( cameraOptions.moveLeft ) velocity.x -= 3.0 * delta;//Decrease x (right/left) vector velocity
+				camera.translateX( velocity.x * delta );//Apply velocity increase to camera translation
 
-			if ( cameraOptions.moveRight ) velocity.x += 3.0 * delta;
-      	camera.translateX( velocity.x * delta );
+			if ( cameraOptions.moveOut ) velocity.z += 3.0 * delta;//Increase z (in/out) vector velocity
+      	camera.translateZ( velocity.z * delta);//Apply velocity increase to camera translation
 
-			if ( cameraOptions.moveIn ) velocity.z -= 3.0 * delta;
-      	camera.translateZ( velocity.z * delta );
+			if ( cameraOptions.moveIn ) velocity.z -= 3.0 * delta;//decrease z (in/out) vector velocity
+      	camera.translateZ( velocity.z * delta );//Apply velocity increase to camera translation
 
-			if ( cameraOptions.moveOut ) velocity.z += 3.0 * delta;
-      	camera.translateZ( velocity.z * delta );
-    tPrev = time;
+    tPrev = time; //Update time value
 
+			//Change movement mode to Orbit when button pressed:
 			if (cameraOptions.orbit) {
 				if (!cameraOptions.moveLeft || !cameraOptions.moveRight) {
 					if (camera.position.z >= 0) {
@@ -520,6 +523,7 @@
 						camera.up = new THREE.Vector3(0,-1,0);
 					}
 				}
+				//Centre camera on origin
 				camera.lookAt(0,0,0);
 
 			}
@@ -529,7 +533,7 @@
 
 
 
-		// Handle keyboard presses.
+		// Handle keyboard presses (key pressed down)
 		function handleKeyDown(event) {
 			switch (event.key) {
 				// Render modes.
@@ -558,58 +562,68 @@
 					break;
 
 
-
 				case 'ArrowLeft':
+				//Start moving left
 					cameraOptions.moveLeft = true;
 					break;
 
 				case 'ArrowRight':
+				//Start moving right
 					cameraOptions.moveRight = true;
 					break;
 
 				case 'ArrowUp':
+				//Start moving up
 					cameraOptions.moveUp = true;
 					break;
 
 				case 'ArrowDown':
+				//Start moving down
 					cameraOptions.moveDown = true;
 					break;
 
 				case 'w':
+				//Start moving in
 					cameraOptions.moveIn = true;
 					break;
 
 				case 's':
+				//Start moving out
 					cameraOptions.moveOut = true;
 					break;
 			}
 		}
 
-		// Handle keyboard presses.
+		// Handle keyboard presses (key pressed up)
 		function handleKeyUp(event) {
 			switch (event.key) {
-
 				case 'ArrowLeft':
+					//Stop moving left
 					cameraOptions.moveLeft = false;
 					break;
 
 				case 'ArrowRight':
+				//Stop moving right
 					cameraOptions.moveRight = false;
 					break;
 
 				case 'ArrowUp':
+				//Stop moving up
 					cameraOptions.moveUp = false;
 					break;
 
 				case 'ArrowDown':
+				//Stop moving down
 					cameraOptions.moveDown = false;
 					break;
 
 				case 'w':
+				//Stop moving in
 					cameraOptions.moveIn = false;
 					break;
 
 				case 's':
+				//Stop moving out
 					cameraOptions.moveOut = false;
 					break;
 			}
