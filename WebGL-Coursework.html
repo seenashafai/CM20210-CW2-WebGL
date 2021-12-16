@@ -393,10 +393,12 @@
 
 		//Sets render mode
 		function setBunnyRender(mode) {
+			if (bunnyOptions.enable) {
 	 			if (mode == "edge") {
 						//Remove current version of bunny
 						scene.remove(bunny)
 						bunny = mBunny //Update bunny
+						if (vBunny) {bunny.rotation.copy(vBunny.rotation)};
 						//Update material wireframe
 						bunny.children[0].material.wireframe = true;
 						//Restore bunny to scene
@@ -406,21 +408,26 @@
 					//Remove current version of bunny
 					scene.remove(bunny)
 					//Update bunny
+					vBunny.rotation.copy(bunny.rotation);
 					bunny = vBunny
+
 					//Return bunny to scene
-					scene.add(bunny)
+					scene.add(bunny);
 					}
 				if (mode == "face") {
 					//Remove current version of bunny
 					scene.remove(bunny);
+
 					//Retrieve original bunny version
 					bunny = mBunny;
+					if (vBunny) {bunny.rotation.copy(vBunny.rotation)};
+
 					//Remove wireframe option
 					bunny.children[0].material.wireframe = false;
 					//Restore bunny to scene
 					scene.add(bunny);
-
 				}
+			}
 		}
 
 		//Manage render modes for cube
@@ -445,7 +452,7 @@
 				if (mode == "face") {
 					scene.remove(cube); //Remove cube
 					//Re-create basic cube object & add to scene
-					cube = new THREE.Mesh(geometry, material );
+					cube = new THREE.Mesh(geometry, cubeMaterials );
 					scene.add(cube);
 				}
 			}
