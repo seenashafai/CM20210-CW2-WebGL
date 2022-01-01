@@ -33,9 +33,11 @@
 
 		//Create set of paramters for Cube
 		var cubeOptions = {
-			wireframe: false,
+			//enable/disable cube in scene
 			enable: true,
+			//Boolean state of cube: Either spinning or not spinning for dice roll
 			spin: false,
+			//rotation booleans
 			rotation_x: 0,
 			rotation_y: 0,
 			rotation_z: 0,
@@ -53,8 +55,9 @@
 
 		//Create set of parameters for Bunny OBJ object
 		var bunnyOptions = {
+			//Enable/disable bunny in scene
       enable: false,
-			vertex: false,
+			//Rotation booleans
 			rotation_x: 0,
 			rotation_y: 0,
 			rotation_z: 0,
@@ -70,15 +73,13 @@
 				vBunny.rotation.x = 0;
 				vBunny.rotation.y = 0;
 				vBunny.rotation.z = 0;
-				mBunny.rotation.x = 0;
-				mBunny.rotation.y = 0;
-				mBunny.rotation.z = 0;
-
 			}
 }
-		//Create set of parameters for camera in scnee
+		//Create set of parameters for camera in scene
 		var cameraOptions = {
+			//Orbit mode boolean
 			orbit: false,
+			//Movement booleans
 			moveUp: false,
 			moveDown: false,
 			moveLeft: false,
@@ -313,6 +314,7 @@
 					//No greatest up component i.e. dice not flat
 		}
 			cubeOptions.spin = false;
+			//Cube has stopped spinning
 
 		}
 
@@ -464,6 +466,8 @@
 		function animate() {
 			requestAnimationFrame(animate);
 
+
+
 			//Increment cannon world simulation
 			if (!lastCallTime) {
 		    world.step(timeStep)//Needs to be called each frame
@@ -477,7 +481,9 @@
 			bunnyControl();//Run bunny rotation function
 
 			var time = performance.now();//get current time
-      var delta = ( time - tPrev ) / 1000;//get timestep
+			var delta = ( time - tPrev ) / 1000;//get timestep
+
+
 
 			//DICE MODE OPTIONS ---------
 
@@ -485,7 +491,6 @@
 				//Combines physics object & threejs object
 				cube.position.copy(boxBody.position) //Translate position data of cube to physics object
 				cube.quaternion.copy(boxBody.quaternion) //Translate rotation data of cube to physics object
-				console.log(boxBody.position);
 
 				//Checks y position of box: waits for it to be flat on the ground
 				if (boxBody.position.y < 1) {
